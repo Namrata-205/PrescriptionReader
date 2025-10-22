@@ -1,0 +1,12 @@
+streamlit
+streamlit-authenticator
+google-generativeai
+gtts
+pydub
+Pillow
+python-dotenv
+PyYAML
+transformers
+torch
+easyocr
+dotenv
