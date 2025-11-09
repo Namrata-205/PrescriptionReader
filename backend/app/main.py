@@ -5,10 +5,6 @@ from app.models.user_model import Base
 from app.services.db_service import engine
 from app.prescription_service import process_prescription
 from app.routers import prescription_router
-from app.prescription_service import 
-from app.routers import settings_router # NEW
-from app.models import settings_model # IMPORTANT: Need to import models for Base.metadata.create_all to find them
-from app.models import medicine_model
 import os
 
 # ===== CHATBOT IMPORTS (ADD THESE) =====
@@ -30,14 +26,10 @@ app.add_middleware(
 # Auth routes
 app.include_router(auth_router.router)
 app.include_router(prescription_router.router, prefix="/api") 
-app.include_router(settings_router.router, prefix="/api") # NEW
 
 # Create database tables 
 Base.metadata.create_all(bind=engine) 
 
-def read_root(): 
-    return {"message": "Prescription Reader API is running"}
-    
 # ===== CHATBOT SETUP (ADD THIS) =====
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
