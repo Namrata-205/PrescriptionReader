@@ -1,3 +1,9 @@
+// src/services/prescription_service.js
+// =========================================================
+// Backend API Service for Prescription Upload + React UI
+// =========================================================
+
+import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
@@ -5,6 +11,32 @@ import { Card } from "../components/ui/Card";
 import { Upload, ArrowLeft, Volume2, RotateCw, Check, Edit, Loader2 } from "lucide-react";
 import { Progress } from "../components/ui/Progress";
 import "../styles/theme.css";
+
+// ===================== API SERVICE =====================
+const API_BASE_URL = "http://127.0.0.1:8000/api";
+
+/**
+ * Upload a prescription image to the backend
+ * @param {File|Blob} file - the uploaded image or blob
+ * @returns {Promise<Object>} - returns { medicines: [...] }
+ */
+export const uploadPrescription = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post(`${API_BASE_URL}/prescriptions/upload`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return response.data; // should contain { medicines: [...] }
+  } catch (error) {
+    console.error("Error uploading prescription:", error);
+    throw error;
+  }
+};
+
+// ===================== FRONTEND COMPONENT =====================
 
 const UploadPrescription = () => {
   const navigate = useNavigate();
@@ -55,27 +87,14 @@ const UploadPrescription = () => {
     for (let i = 0; i < stages.length; i++) {
       setProcessingStep((i + 1) * 20);
       speakText(stages[i]);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // small delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     try {
-      // Convert uploaded image Data URL to Blob
-      const formData = new FormData();
       const blob = await fetch(uploadedImage).then(r => r.blob());
-      formData.append("file", blob, "prescription.png");
-
-      // Call backend FastAPI route
-      const response = await fetch("http://127.0.0.1:8000/api/prescriptions/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Failed to process prescription");
-
-      const data = await response.json();
+      const data = await uploadPrescription(blob);  // 🔗 Using shared API service
       setExtractedMedicines(data.structured_data?.medicines || []);
       speakText("Prescription processed successfully. Review the extracted medicines below.");
-
     } catch (error) {
       console.error(error);
       speakText("Error processing prescription. Please try again.");
@@ -86,16 +105,13 @@ const UploadPrescription = () => {
 
   return (
     <div className="upload-page">
-      {/* Back Button */}
       <Button variant="outline" size="sm" className="back-btn" onClick={() => navigate("/dashboard")}>
         <ArrowLeft size={18} /> Back
       </Button>
 
-      {/* Page Title */}
       <h1 className="upload-title">Upload Prescription</h1>
 
       <main className="upload-main">
-        {/* Upload Card */}
         {!uploadedImage && (
           <Card className="upload-card">
             <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="upload-file" />
@@ -107,7 +123,6 @@ const UploadPrescription = () => {
           </Card>
         )}
 
-        {/* Preview & Process */}
         {uploadedImage && !isProcessing && extractedMedicines.length === 0 && (
           <Card className="preview-card">
             <img src={uploadedImage} alt="Preview" className="preview-image" />
@@ -120,7 +135,6 @@ const UploadPrescription = () => {
           </Card>
         )}
 
-        {/* Processing */}
         {isProcessing && (
           <Card className="processing-card">
             <Loader2 size={48} className="loader" />
@@ -130,7 +144,6 @@ const UploadPrescription = () => {
           </Card>
         )}
 
-        {/* Extracted Medicines */}
         {extractedMedicines.length > 0 && (
           <div className="medicines-grid">
             {extractedMedicines.map((medicine, idx) => (
