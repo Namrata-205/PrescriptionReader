@@ -74,6 +74,7 @@ const UploadPrescription = () => {
 
       const data = await response.json();
       setExtractedMedicines(data.structured_data?.medicines || []);
+      sessionStorage.setItem("extractedMedicines", JSON.stringify(data.structured_data?.medicines || []));
       speakText("Prescription processed successfully. Review the extracted medicines below.");
 
     } catch (error) {
